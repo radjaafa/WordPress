@@ -1,0 +1,33 @@
+name: 'kustomize
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, closed]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+  kustomize:
+    name: 'Kustomize'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@master
+      - name: 'Kustomize Build'
+        uses: karancode/kustomize-github-action@master
+        with:
+          kustomize_version: '3.0.0'
+          kustomize_build_dir: 'kubermatic/artifacts'
+          kustomize_comment: true
+          kustomize_output_file: "artifacts/kustom.yaml"
+          kustomize_build_options: "--load_restrictor none"
+          enable_alpha_plugins: true
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
+
+      - name: kubectl-action
+        uses: danielr1996/kubectl-action@1.0.0
+        with:
+          args: apply -f kustom.yaml
